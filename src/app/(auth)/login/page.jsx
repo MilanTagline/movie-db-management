@@ -1,6 +1,6 @@
 "use client";
-import CustomButton from "@/shared/CustomButton";
-import CustomTypography from "@/shared/CustomTypography";
+import Button from "@/shared/Button";
+import Typography from "@/shared/Typography";
 import theme from "@/themes/theme";
 import { yupResolver } from "@hookform/resolvers/yup";
 import {
@@ -58,7 +58,7 @@ const LoginPage = () => {
           maxWidth: "400px",
         }}
       >
-        <CustomTypography
+        <Typography
           variant="h4"
           sx={{
             color: "white.main",
@@ -69,13 +69,14 @@ const LoginPage = () => {
           }}
         >
           Sign in
-        </CustomTypography>
+        </Typography>
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
           <TextField
             {...register("email")}
             label="Email"
             variant="outlined"
             fullWidth
+            autoComplete="off"
             sx={{
               input: {
                 color: "white.main",
@@ -96,7 +97,7 @@ const LoginPage = () => {
               "& .MuiFormHelperText-root": {
                 color: errors.email
                   ? `${theme.palette.primary.error}`
-                  : "white.main", // Change color based on error
+                  : "white.main",
               },
             }}
             error={!!errors.email}
@@ -129,7 +130,7 @@ const LoginPage = () => {
               "& .MuiFormHelperText-root": {
                 color: errors.password
                   ? `${theme.palette.primary.error}`
-                  : "white.main", // Change color based on error
+                  : "white.main", 
               },
             }}
             error={!!errors.password}
@@ -154,7 +155,7 @@ const LoginPage = () => {
               justifyContent: "center",
             }}
           />
-          <CustomButton
+          <Button
             type="submit"
             fullWidth
             variant="contained"
@@ -164,7 +165,7 @@ const LoginPage = () => {
             }}
           >
             Login
-          </CustomButton>
+          </Button>
         </form>
       </Box>
       <Box

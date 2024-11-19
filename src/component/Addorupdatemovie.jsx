@@ -3,23 +3,49 @@ import theme from "@/themes/theme";
 import { Box, Stack, TextField, Typography } from "@mui/material";
 import Image from "next/image";
 import { useState } from "react";
+import * as Yup from "yup";
 import { useDropzone } from "react-dropzone";
 import { useForm } from "react-hook-form";
 import Download from "../../public/assets/download.svg";
 import bgImage from "../../public/assets/Vectors.png";
-import CustomButton from "@/shared/CustomButton";
+import Button from "@/shared/Button";
+import { useRouter } from "next/navigation";
+import { yupResolver } from "@hookform/resolvers/yup";
 
-export default function Addorupdatemovie() {
-  const [file, setFile] = useState(null);
+export default function Addorupdatemovie(values) {
+  const [fileError, setFileError] = useState(null);
+  const router = useRouter();
+  const validationSchema = Yup.object().shape({
+    title: Yup.string().required("Title is required"),
+    year: Yup.string().required("Publish year is required"),
+    file: Yup.string().required("Image is required")
+  });
 
-  const onDrop = (acceptedFiles) => {
-    setFile(acceptedFiles[0]);
+  const defaultValue = {
+    title: "",
+    year: "",
+    file: "",
   };
   const {
     register,
     handleSubmit,
+    setValue,
+    watch,
     formState: { errors },
-  } = useForm({});
+  } = useForm({
+    resolver: yupResolver(validationSchema),
+    values: values
+      ? {
+          title: values.title,
+          year: values.year,
+          file: values?.file
+        }
+      : defaultValue,
+  });
+  const onDrop = (acceptedFiles) => {
+    setValue("file", acceptedFiles[0]);
+    setFileError(null);
+  };  
 
   const onSubmit = (data) => {
     console.log("Form Data: ", data);
@@ -32,25 +58,34 @@ export default function Addorupdatemovie() {
       sx={{
         backgroundColor: "#0B2434",
         minHeight: "100vh",
-        padding:{xs: '20px',md:'80px',lg:"120px"},
+        padding: { xs: "20px", md: "80px", lg: "120px" },
         paddingBottom: "200px !important",
-        position: 'relative'
+        position: "relative",
       }}
     >
       <Typography
         variant="h4"
-        sx={{ color: "#fff", marginBottom: "120px", fontWeight: "bold", fontSize: '48px', lineHeight:"56px" }}
+        sx={{
+          color: "#fff",
+          marginBottom: "120px",
+          fontWeight: "bold",
+          fontSize: "48px",
+          lineHeight: "56px",
+        }}
       >
-        Create a new movie
+        {Object.keys(values)?.length ? "Edit" : "Create a new movie"}
       </Typography>
       <form action="" onSubmit={handleSubmit(onSubmit)}>
-        <Stack direction={{md:"row"}} gap={{xs:"30px",md:"75px",lg:"127px"}}>
+        <Stack
+          direction={{ md: "row" }}
+          gap={{ xs: "30px", md: "75px", lg: "127px" }}
+        >
           <Box
             {...getRootProps()}
             sx={{
-              border: "2px dashed #ffffff",
+              border: errors?.file?.message ? "2px dashed red" : "2px dashed #ffffff",
               borderRadius: "10px",
-              width: {xs: '100%',md:"40%"},
+              width: { xs: "100%", md: "40%" },
               height: "500px",
               display: "flex",
               alignItems: "center",
@@ -63,12 +98,19 @@ export default function Addorupdatemovie() {
             }}
           >
             <input {...getInputProps()} />
-            <Image src={Download.src} height={20} width={20} alt="download icon" />
-            <Typography>Drop an image here</Typography>
+            {!watch('file') && (
+              <Image
+                src={Download.src}
+                height={20}
+                width={20}
+                alt="download icon"
+              />
+            )}
+            {errors?.file?.message ? <Typography sx={{color: "red"}}>{errors?.file?.message}</Typography> : watch('file') ?  watch('file')?.name: "Drop an image here"}
           </Box>
           <Box>
             <TextField
-              {...register("Title")}
+              {...register("title")}
               label="Title"
               variant="outlined"
               fullWidth
@@ -90,18 +132,17 @@ export default function Addorupdatemovie() {
                   "&.Mui-focused fieldset": { borderColor: "#6ee7b7" },
                 },
                 "& .MuiFormHelperText-root": {
-                  color: errors.email
+                  color: errors.title
                     ? `${theme.palette.primary.error}`
                     : "white.main", // Change color based on error
                 },
               }}
-              error={!!errors.email}
-              helperText={errors.email?.message}
+              error={!!errors.title}
+              helperText={errors.title?.message}
             />
             <TextField
-              {...register("Publishing year")}
+              {...register("year")}
               label="Publishing year"
-              type="text"
               variant="outlined"
               fullWidth
               sx={{
@@ -115,7 +156,7 @@ export default function Addorupdatemovie() {
                   "&:-webkit-autofill": {
                     bgcolor: "#224957",
                     WebkitBoxShadow: "0 0 0px 1000px #224957 inset ",
-                    color: "white.main !important",
+                    color: "#fff !important",
                   },
                 },
                 label: { color: "white.main" },
@@ -125,35 +166,35 @@ export default function Addorupdatemovie() {
                   "&.Mui-focused fieldset": { borderColor: "#6ee7b7" },
                 },
                 "& .MuiFormHelperText-root": {
-                  color: errors.password
+                  color: errors.year
                     ? `${theme.palette.primary.error}`
                     : "white.main", // Change color based on error
                 },
               }}
-              error={!!errors.password}
-              helperText={errors.password?.message}
+              error={!!errors.year}
+              helperText={errors.year?.message}
             />
-
             <Box
               sx={{
                 display: "flex",
                 justifyContent: "space-between",
                 width: "100%",
                 marginTop: "64px",
-                width: '100%',
-                gap: '16px'
+                width: "100%",
+                gap: "16px",
               }}
             >
-              <CustomButton
+              <Button
                 variant="outlined"
                 color="white.main"
                 sx={{ width: "100%" }}
+                onClick={() => router.push("/movie")}
               >
                 Cancel
-              </CustomButton>
-              <CustomButton variant="contained" sx={{ width: "100%" }}>
+              </Button>
+              <Button variant="contained" type="submit" sx={{ width: "100%" }}>
                 Submit
-              </CustomButton>
+              </Button>
             </Box>
           </Box>
         </Stack>
@@ -161,7 +202,7 @@ export default function Addorupdatemovie() {
 
       <Box
         component="img"
-        src={bgImage.src} // Replace with the actual path to your wave image
+        src={bgImage.src}
         alt="Wave Background"
         sx={{
           position: "absolute",

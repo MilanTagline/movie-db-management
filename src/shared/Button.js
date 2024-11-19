@@ -4,7 +4,6 @@ import styled from "@emotion/styled";
 
 const StyledButton = styled(Button)(({ theme }) => ({
   "&.MuiButtonBase-root": {
-    padding: "13px 15px",
     borderRadius: 8,
     fontSize: 16,
     fontWeight: 700,
@@ -15,7 +14,7 @@ const StyledButton = styled(Button)(({ theme }) => ({
   },
 }));
 
-export default function CustomButton({ children, ...rest }) {
+export default function MuiButton({ children, ...rest }) {
   return (
     <StyledButton {...rest} disableElevation>
       {children}

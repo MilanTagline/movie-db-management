@@ -2,17 +2,13 @@
 import React from "react";
 import {
   Box,
-  TextField,
   Typography,
-  Button,
-  Checkbox,
-  FormControlLabel,
 } from "@mui/material";
 import bgImage from "../../public/assets/Vectors.png";
-import CustomButton from "@/shared/CustomButton";
-import { redirect, useRouter } from "next/navigation";
+import Button from "@/shared/Button";
+import { useRouter } from "next/navigation";
 
-const MovieList = () => {
+const EmptyMovieView = () => {
   const router = useRouter()
   return (
     <Box
@@ -37,7 +33,7 @@ const MovieList = () => {
         >
           Your movie list is empty
         </Typography>
-        <CustomButton sx={{
+        <Button sx={{
           backgroundColor: "#2BD17E",
           color: "#ffffff",
           padding: "10px 20px",
@@ -49,7 +45,7 @@ const MovieList = () => {
         onClick={() => router.push('/movie/create')}
         >
           Add a new movie
-        </CustomButton>
+        </Button>
       </Box>
 
       <Box
@@ -68,4 +64,4 @@ const MovieList = () => {
   );
 };
 
-export default MovieList;
+export default EmptyMovieView;

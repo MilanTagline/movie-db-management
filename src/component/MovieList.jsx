@@ -1,4 +1,3 @@
-// pages/index.js
 import React from "react";
 import { AppBar, Toolbar, Typography, Grid, Card, CardMedia, CardContent, Button, Pagination, Box } from "@mui/material";
 import bgImage from "../../public/assets/Vectors.png";
@@ -6,25 +5,27 @@ import CardImage from "../../public/assets/card-image.png";
 import Plus from '../../public/assets/round-plus.svg';
 import Logout from '../../public/assets/logout.svg';
 import Image from "next/image";
+import Link from "next/link";
 
 
-export default function AllMovies() {
-  const movies = Array(12).fill({ title: "Movie 1", year: 2021, image: CardImage.src }); // Example data
+export default function MovieList() {
+  const movies = Array(12).fill({ title: "Movie 1", year: 2021, image: CardImage.src }); 
 
   return (
-    <Box sx={{ backgroundColor: "#0a3644", position: 'relative', minHeight: "100vh", padding:{xs: '20px',md:'80px',lg:"120px"}, paddingBottom: {xs: '100px',md:'200px'}, color: "#FFFFFF" }}>
+    <Box sx={{ backgroundColor: "#0a3644", position: 'relative', minHeight: "100vh", padding:{xs: '20px',md:'80px',lg:"120px"}, paddingBottom: {xs: '100px !important',md:'200px !important'}, color: "#FFFFFF" }}>
       {/* Header */}
       <AppBar position="static" sx={{ backgroundColor: "#0a3644", boxShadow: "none", padding: "0" }}>
         <Toolbar sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", minHeight: 'unset !important' }}>
           <Typography variant="h6" color="white.main" sx={{ fontWeight: "bold", fontSize: "24px", display: 'flex', alignItems: 'center', gap: '15px' }}>
             My Movies
+            <Link href="/movie/create" sx={{cursor: "pointer"}}>
             <Image src={Plus.src} height={20} width={20} alt="plus icon" />
+            </Link>
           </Typography>
           <Button sx={{ color: "#ffffff", textTransform: "none", fontWeight: "bold", gap: '10px' }}>Logout  <Image  alt="logout icon" src={Logout.src} height={20} width={20} /></Button>
         </Toolbar>
       </AppBar>
 
-      {/* Movie Grid */}
       <Grid container spacing={4} sx={{ padding: "20px", justifyContent: "center" }}>
         {movies.map((movie, index) => (
           <Grid item key={index} xs={12} sm={6} md={4} lg={3}>
@@ -52,10 +53,10 @@ export default function AllMovies() {
         ))}
       </Grid>
 
-      {/* Pagination */}
       <div style={{ display: "flex", justifyContent: "center", padding: "20px 0" }}>
         <Pagination
-          count={2} // Example pagination count
+          count={2}
+          shape="rounded"
           color="primary"
           sx={{
             "& .MuiPaginationItem-root": {

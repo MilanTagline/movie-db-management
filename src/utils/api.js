@@ -24,7 +24,7 @@ const api = (
     }
     axios({
       method,
-      url: process.env.REACT_APP_API_URL + urlEndPoint,
+      url: urlEndPoint,
       data,
       headers,
     })

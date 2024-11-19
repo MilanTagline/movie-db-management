@@ -3,7 +3,7 @@ import { LOGIN_SUCCESS, LOGIN_FAILURE } from '../constants/authConstant';
 
 export const login = (payload) => async (dispatch) => {
   try {
-    const { data } = await api('post', 'sign-in', payload, false)
+    const { data } = await api('post', '/api/sign-in', payload, false)
     dispatch({
       type: LOGIN_SUCCESS,
       payload: user,
