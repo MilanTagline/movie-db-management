@@ -55,6 +55,9 @@ const LoginPage = () => {
     if (data?.rememberMe) {
       Cookies.set("email", data.email);
       Cookies.set("password", data.password);
+    } else {
+      Cookies.remove("email", data.email);
+      Cookies.remove("password", data.password);
     }
     dispatch(login(data, router));
   };

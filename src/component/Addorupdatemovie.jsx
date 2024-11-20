@@ -18,6 +18,7 @@ export default function Addorupdatemovie({ movie }) {
   const [imagePreview, setImagePreview] = useState(
     movie?.poster ? movie?.poster : null
   );
+  const [loader, setLoader] = useState(false);
   const router = useRouter();
   const validationSchema = Yup.object().shape({
     title: Yup.string().required("Title is required"),
@@ -66,16 +67,19 @@ export default function Addorupdatemovie({ movie }) {
   };
 
   const onSubmit = async (data) => {
+    setLoader(true);
     let formData = new FormData();
     formData.append("title", data?.title);
     formData.append("publishingYear", data?.year);
     formData.append(
       "poster",
       Object?.keys(movie)?.length
-        ? await urlToFile(movie?.poster, "movie poster")
+        ? typeof watch("file") == "object"
+          ? watch("file")
+          : await urlToFile(movie?.poster, "movie poster")
         : watch("file")
     );
-    formData.append("id", movie?._id);
+    Object.keys(movie)?.length && formData.append("id", movie?._id);
 
     try {
       const res = Object.keys(movie)?.length
@@ -85,10 +89,12 @@ export default function Addorupdatemovie({ movie }) {
         Object.keys(movie)?.length
           ? toast.success("Movie Updated successfully")
           : toast.success("Movie created successfully");
+        setLoader(false);
         router.push("/movie");
         reset();
       }
     } catch (error) {
+      setLoader(false);
       toast.error(error?.message || "Something went wrong");
     }
   };
@@ -271,7 +277,11 @@ export default function Addorupdatemovie({ movie }) {
                 Cancel
               </Button>
               <Button variant="contained" type="submit" sx={{ width: "100%" }}>
-                {Object.keys(movie)?.length ? "Update" : "Submit"}
+                {loader
+                  ? "Loading..."
+                  : Object.keys(movie)?.length
+                  ? "Update"
+                  : "Submit"}
               </Button>
             </Box>
           </Box>

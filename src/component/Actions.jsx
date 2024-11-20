@@ -34,7 +34,7 @@ const Actions = ({ id }) => {
   const handleDelete = async () => {
     try {
       const data = await api("delete", `/api/movies?id=${id}`, null, true);
-      toast.success(data?.message);
+      toast.success(data?.message || "Movie deleted successfully");
       router.refresh();
     } catch (error) {
       toast.error(error?.message || "Something went wrong");
