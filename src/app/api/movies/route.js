@@ -98,6 +98,7 @@ export async function POST(request) {
       });
     });
 
+    const token = request.headers.get("Authorization")?.split(" ")[1];
     const tokenResponse = await verifyToken(token);
     if (!tokenResponse.success) {
       return response(false, 401, tokenResponse.message);
@@ -163,6 +164,7 @@ export async function PUT(request) {
       });
     });
 
+    const token = request.headers.get("Authorization")?.split(" ")[1];
     const tokenResponse = await verifyToken(token);
     if (!tokenResponse.success) {
       return response(false, 401, tokenResponse.message);
@@ -230,6 +232,7 @@ export async function DELETE(request) {
   try {
     await dbConnect();
 
+    const token = request.headers.get("Authorization")?.split(" ")[1];
     const tokenResponse = await verifyToken(token);
     if (!tokenResponse.success) {
       return response(false, 401, tokenResponse.message);

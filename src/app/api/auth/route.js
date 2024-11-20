@@ -47,7 +47,6 @@ export async function POST(request) {
     }
 
     const user = await users.findOne({ email });
-    // console.log("\n >>>>>>>user :>>>>> ", user);
     if (!user) {
       return response(false, 404, "User not found");
     }
@@ -59,18 +58,13 @@ export async function POST(request) {
 
     // Generate a JWT token
     const token = jwt.sign(
-      { id: user._id, email: user.email }, // Payload
-      process.env.JWT_SECRET, // Secret key
-      { expiresIn: "24h" } // Token expiry time
+      { id: user._id, email: user.email },
+      process.env.JWT_SECRET,
+      { expiresIn: "24h" }
     );
 
     return response(true, 200, "Login successful", {
       token,
-      // user: {
-      // id: user._id,
-      // email: user.email,
-      // name: user.name, // Include additional user data if required
-      // },
     });
 
     // return response(true, 200, "success");
