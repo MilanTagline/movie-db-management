@@ -5,7 +5,6 @@ import jwt from "jsonwebtoken";
 import users from "@/models/user";
 import formidable from "formidable";
 import cloudinary from "cloudinary";
-// import { getRequest } from "next/dist/server/node-http";
 import { Readable } from "stream";
 
 // Disable bodyParser for Next.js API routes to handle `formidable`
@@ -15,68 +14,81 @@ export const config = {
   },
 };
 
+// Common function to verify token and return userId or error message
+async function verifyToken(token) {
+  try {
+    if (!token) {
+      return { success: false, message: "Authorization token is required" };
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    if (!decoded) {
+      return { success: false, message: "Invalid token" };
+    }
+
+    // Verify that the user exists in the database
+    const user = await users.findById(decoded?.id);
+
+    if (!user) {
+      return response(false, 401, "Unauthorized user");
+    }
+
+    return { success: true, userId: decoded?.id };
+  } catch (error) {
+    console.log("\n >>>> error >>>> ", error);
+    return { success: false, message: "Invalid token", error };
+  }
+}
+
 export async function GET(request) {
   try {
     await dbConnect();
 
     const token = request.headers.get("Authorization")?.split(" ")[1];
 
-    if (!token) {
-      return response(false, 401, "Authorization token is required");
-    }
-
-    // Verify the token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-    if (!decoded) {
-      return response(false, 401, "Invalid token");
-    }
-    const userId = decoded.id;
-
-    const user = await users.findById(userId);
-
-    if (!user) {
-      return response(false, 401, "Unauthorized user");
+    const tokenResponse = await verifyToken(token);
+    if (!tokenResponse.success) {
+      return response(false, 401, tokenResponse.message);
     }
 
     const { searchParams } = new URL(request?.url);
     const id = searchParams?.get("id");
+    const page = parseInt(searchParams?.get("page")) || 1; // Default page is 1
+    const limit = parseInt(searchParams?.get("limit")) || 8; // Default limit is 8
 
     let movies;
     if (id) {
       movies = await Movies.findById(id);
     } else {
-      movies = await Movies.find();
+      const skip = (page - 1) * limit;
+      movies = await Movies.find().skip(skip).limit(limit);
     }
-    if (!movies) {
-      return response(false, 401, "No Movie Found");
+    if (!movies || (Array.isArray(movies) && movies.length === 0)) {
+      return response(false, 404, "No Movie Found");
     }
 
     return response(true, 200, "Success", movies);
   } catch (error) {
     console.log("\n >>>> error >>>> ", error);
-    return response(true, 500, "Error fetching movies", error);
+    return response(false, 500, "Error fetching movies", error);
   }
 }
 
-// Handle POST request
 export async function POST(request) {
   try {
     await dbConnect();
 
-    // Convert the request body to a readable stream for formidable
     const readableStream = new Readable();
     readableStream._read = () => {};
     const arrayBuffer = await request.arrayBuffer();
-    readableStream.push(Buffer.from(arrayBuffer)); // Convert ArrayBuffer to Buffer
+    readableStream.push(Buffer.from(arrayBuffer));
     readableStream.push(null);
 
-    // Add headers to the readable stream for Formidable
     readableStream.headers = {
       ...Object.fromEntries(request.headers.entries()),
     };
 
-    // Parse form-data using formidable
     const form = formidable({ multiples: false });
 
     const { fields, files } = await new Promise((resolve, reject) => {
@@ -86,44 +98,14 @@ export async function POST(request) {
       });
     });
 
-    // Get the token from the Authorization header
-    const token = request.headers.get("Authorization")?.split(" ")[1]; // 'Bearer <token>'
-    console.log("\n\n >>>>>> token >>>>>>\n\n", token);
-
-    if (!token) {
-      return response(false, 401, "Authorization token is required");
+    const tokenResponse = await verifyToken(token);
+    if (!tokenResponse.success) {
+      return response(false, 401, tokenResponse.message);
     }
 
-    // Verify the token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET); // Verify the token with the secret
-    console.log("\n\n >>>>>> decoded >>>>>>\n\n", decoded);
-
-    if (!decoded) {
-      return response(false, 401, "Invalid token");
-    }
-    // Extract user ID from decoded token
-    const userId = decoded.id;
-
-    // Verify that the user exists in the database
-    const user = await users.findById(userId);
-    console.log("\n\n >>>>>> user >>>>>>\n", user);
-
-    if (!user) {
-      return response(false, 401, "Unauthorized user");
-    }
-    console.log("\n\n >>>>>> After user >>>>>>\n");
-
-    // const { [title], publishingYear, poster } = await request.json();
     const { title, publishingYear } = fields;
-    // const poster = files.poster ? files.poster[0] : null;
     const [poster] = files.poster;
 
-    // console.log(
-    //   "\n\n >>>>>> poster() >>>>>>\n\n",
-    //   title,
-    //   publishingYear,
-    //   poster
-    // );
     if (!title[0] || !publishingYear[0]) {
       return response(false, 400, "All fields are required");
     }
@@ -145,7 +127,6 @@ export async function POST(request) {
       }
     }
 
-    console.log("\n >>>>> posterUrl >>>>> ", posterUrl);
     const movie = await Movies.create({
       title: title[0],
       publishingYear: publishingYear[0],
@@ -162,19 +143,17 @@ export async function POST(request) {
 export async function PUT(request) {
   try {
     await dbConnect();
-    // Convert the request body to a readable stream for formidable
+
     const readableStream = new Readable();
     readableStream._read = () => {};
     const arrayBuffer = await request.arrayBuffer();
     readableStream.push(Buffer.from(arrayBuffer));
     readableStream.push(null);
 
-    // Add headers to the readable stream for Formidable
     readableStream.headers = {
       ...Object.fromEntries(request.headers.entries()),
     };
 
-    // Parse form-data using formidable
     const form = formidable({ multiples: false });
 
     const { fields, files } = await new Promise((resolve, reject) => {
@@ -183,43 +162,15 @@ export async function PUT(request) {
         else resolve({ fields, files });
       });
     });
-    console.log("\n >>>> fields :>>>>>> ", fields);
-    // Get the token from the Authorization header
-    const token = request.headers.get("Authorization")?.split(" ")[1];
 
-    if (!token) {
-      return response(false, 401, "Authorization token is required");
+    const tokenResponse = await verifyToken(token);
+    if (!tokenResponse.success) {
+      return response(false, 401, tokenResponse.message);
     }
 
-    // Verify the token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-    if (!decoded) {
-      return response(false, 401, "Invalid token");
-    }
-    // Extract user ID from decoded token
-    const userId = decoded.id;
-
-    // Verify that the user exists in the database
-    const user = await users.findById(userId);
-
-    if (!user) {
-      return response(false, 401, "Unauthorized user");
-    }
-    // console.log("\n\n >>>>>> After user >>>>>>\n");
-
-    // const { [title], publishingYear, poster } = await request.json();
     const { id, title, publishingYear } = fields;
-    // const poster = files.poster ? files.poster[0] : null;
     const [poster] = files.poster;
 
-    console.log(
-      "\n\n >>>>>> request >>>>>>\n",
-      id[0],
-      title[0],
-      publishingYear[0]
-      // poster
-    );
     if (!id[0]) {
       return response(false, 400, "Id is required");
     }
@@ -251,7 +202,6 @@ export async function PUT(request) {
     if (title[0]) updateData.title = title[0];
     if (publishingYear[0]) updateData.publishingYear = publishingYear[0];
     if (posterUrl) updateData.poster = posterUrl;
-    // console.log("\n\n >>>> updateData :>> \n", updateData);
 
     const updatedMovie = await Movies.findByIdAndUpdate(id, updateData, {
       new: true,
@@ -266,12 +216,7 @@ export async function PUT(request) {
       .join("/")
       .split(".")[0];
 
-    console.log("publicId :>> ", publicId);
-
-    // // Delete the old image from Cloudinary
-    await cloudinary.uploader.destroy(publicId, function (result) {
-      console.log("Old image deleted from Cloudinary:", result);
-    });
+    await cloudinary.uploader.destroy(publicId, function (result) {});
 
     return response(true, 201, "Success", updatedMovie);
   } catch (error) {
@@ -284,39 +229,18 @@ export async function PUT(request) {
 export async function DELETE(request) {
   try {
     await dbConnect();
-    const token = request.headers.get("Authorization")?.split(" ")[1]; // 'Bearer <token>'
-    // console.log("\n\n >>>>>> token >>>>>>\n\n", token);
 
-    if (!token) {
-      return response(false, 401, "Authorization token is required");
-    }
-
-    // Verify the token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET); // Verify the token with the secret
-    // console.log("\n\n >>>>>> decoded >>>>>>\n\n", decoded);
-
-    if (!decoded) {
-      return response(false, 401, "Invalid token");
-    }
-    // Extract user ID from decoded token
-    const userId = decoded.id;
-
-    // Verify that the user exists in the database
-    const user = await users.findById(userId);
-    // console.log("\n\n >>>>>> user >>>>>>\n", user);
-
-    if (!user) {
-      return response(false, 401, "Unauthorized user");
+    const tokenResponse = await verifyToken(token);
+    if (!tokenResponse.success) {
+      return response(false, 401, tokenResponse.message);
     }
 
     const { searchParams } = new URL(request?.url);
     const id = searchParams?.get("id");
-    console.log("\n >>>> object >>>> ", id);
     if (!id) {
       return response(true, 400, "Movie ID is required");
     }
     const deletedMovie = await Movies.findByIdAndDelete(id);
-    console.log("deletedMovie :>> ", deletedMovie);
     if (!deletedMovie) {
       return response(true, 404, "Movie not found");
     }
@@ -327,15 +251,11 @@ export async function DELETE(request) {
       .join("/")
       .split(".")[0];
 
-    console.log("publicId :>> ", publicId);
-
-    // // Delete the old image from Cloudinary
-    await cloudinary.uploader.destroy(publicId, function (result) {
-      console.log(" Movie image is deleted from Cloudinary:", result);
-    });
+    await cloudinary.uploader.destroy(publicId, function (result) {});
 
     return response(true, 201, "Movie deleted successfully");
   } catch (error) {
+    console.log("\n >>>> error >>>> ", error);
     return response(true, 500, "Error deleting movie", error);
   }
 }
