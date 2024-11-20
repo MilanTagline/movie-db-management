@@ -8,62 +8,6 @@ import cloudinary from "cloudinary";
 // import { getRequest } from "next/dist/server/node-http";
 import { Readable } from "stream";
 
-// export default async function handler(request ) {
-//   await dbConnect();
-//   console.log(">>>> request :>>>> ", request);
-
-//   const { method } = request;
-
-//   switch (method) {
-//     case "GET":
-//       console.log("\n\n >>>> GET :>>>> \n\n");
-
-//       const movies = await Movies.find({});
-//       res.status(200).json(movies);
-//       break;
-
-//     case "POST":
-//       const { title, publishingYear, poster } = request.body;
-//       const movie = await Movies.create({ title, publishingYear, poster });
-//       res.status(201).json(movie);
-//       break;
-//     case "PUT":
-//       const { id } = request.query;
-//       const updatedMovie = await Movies.findByIdAndUpdate(id, request.body, {
-//         new: true,
-//       });
-//       res.status(200).json(updatedMovie);
-//       break;
-//     case "DELETE":
-//       await Movies.findByIdAndDelete(request.query.id);
-//       res.status(200).json({ message: "Movie deleted" });
-//       break;
-//     default:
-//       res.status(405).json({ message: "Method not allowed" });
-//   }
-// }
-
-// export async function handler(request ) {
-//   await dbConnect();
-//   console.log(">>>> request :>>>> ", request);
-//   const { method } = request;
-
-//   switch (method) {
-//     case "GET":
-//       return handleGet(request );
-//     case "POST":
-//       return handlePost(request );
-//     case "PUT":
-//       return handlePut(request );
-//     case "DELETE":
-//       return handleDelete(request );
-//     default:
-//       return res.status(405).json({ message: "Method not allowed" });
-//   }
-// }
-
-// Handle GET request
-
 // Disable bodyParser for Next.js API routes to handle `formidable`
 export const config = {
   api: {
@@ -74,27 +18,22 @@ export const config = {
 export async function GET(request) {
   try {
     await dbConnect();
-    // Get the token from the Authorization header
-    const token = request.headers.get("Authorization")?.split(" ")[1]; // 'Bearer <token>'
-    // console.log("\n\n >>>>>> token >>>>>>\n\n", token);
+
+    const token = request.headers.get("Authorization")?.split(" ")[1];
 
     if (!token) {
       return response(false, 401, "Authorization token is required");
     }
 
     // Verify the token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET); // Verify the token with the secret
-    // console.log("\n\n >>>>>> decoded >>>>>>\n\n", decoded);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     if (!decoded) {
       return response(false, 401, "Invalid token");
     }
-    // Extract user ID from decoded token
     const userId = decoded.id;
 
-    // Verify that the user exists in the database
     const user = await users.findById(userId);
-    // console.log("\n\n >>>>>> user >>>>>>\n", user);
 
     if (!user) {
       return response(false, 401, "Unauthorized user");
@@ -227,7 +166,7 @@ export async function PUT(request) {
     const readableStream = new Readable();
     readableStream._read = () => {};
     const arrayBuffer = await request.arrayBuffer();
-    readableStream.push(Buffer.from(arrayBuffer)); // Convert ArrayBuffer to Buffer
+    readableStream.push(Buffer.from(arrayBuffer));
     readableStream.push(null);
 
     // Add headers to the readable stream for Formidable
@@ -245,18 +184,15 @@ export async function PUT(request) {
       });
     });
     console.log("\n >>>> fields :>>>>>> ", fields);
-    // console.log("\n >>>> fields :>>>>>> ", files);
     // Get the token from the Authorization header
-    const token = request.headers.get("Authorization")?.split(" ")[1]; // 'Bearer <token>'
-    // console.log("\n\n >>>>>> token >>>>>>\n\n", token);
+    const token = request.headers.get("Authorization")?.split(" ")[1];
 
     if (!token) {
       return response(false, 401, "Authorization token is required");
     }
 
     // Verify the token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET); // Verify the token with the secret
-    // console.log("\n\n >>>>>> decoded >>>>>>\n\n", decoded);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     if (!decoded) {
       return response(false, 401, "Invalid token");
@@ -266,7 +202,6 @@ export async function PUT(request) {
 
     // Verify that the user exists in the database
     const user = await users.findById(userId);
-    // console.log("\n\n >>>>>> user >>>>>>\n", user);
 
     if (!user) {
       return response(false, 401, "Unauthorized user");
@@ -309,6 +244,9 @@ export async function PUT(request) {
     if (!id) {
       return response(true, 400, "Movie ID is required");
     }
+    const movieOldData = await Movies.findById(id);
+    if (!movieOldData) return response(true, 400, "No movie found");
+
     let updateData = {};
     if (title[0]) updateData.title = title[0];
     if (publishingYear[0]) updateData.publishingYear = publishingYear[0];
@@ -316,14 +254,13 @@ export async function PUT(request) {
     // console.log("\n\n >>>> updateData :>> \n", updateData);
 
     const updatedMovie = await Movies.findByIdAndUpdate(id, updateData, {
-      new: false,
+      new: true,
     });
     if (!updatedMovie) {
       return response(true, 404, "Movie not found");
     }
-    // console.log("\n\n >>>> old updateData :>> \n", updatedMovie);
 
-    const publicId = updatedMovie?.poster
+    const publicId = movieOldData?.poster
       .split("/")
       .slice(-2)
       .join("/")
