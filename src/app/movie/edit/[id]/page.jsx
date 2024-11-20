@@ -1,10 +1,23 @@
 import Addorupdatemovie from "@/component/Addorupdatemovie";
-import api from "@/utils/api";
+import { cookies } from "next/headers";
 import React from "react";
 
-const EditMovies = async ({ id }) => {
-  const { data } = await api("get", `movies/${id}`, false);
-  return <Addorupdatemovie values={data} />;
+async function fetchMovies(id) {
+  const token = (await cookies()).get('token')
+  const  data  = await fetch(`${process.env.NEXT_PUBLIC_URL}api/movies?id=${id}`,{
+    headers: {
+      Authorization: `Bearer ${token?.value}`,
+      'Content-Type': 'application/json',
+    }
+  })
+  const res = await data.json();
+  return res;
+}
+
+const EditMovies = async ({ params }) => {
+    const data = await fetchMovies((await params).id)
+
+  return <Addorupdatemovie movie={data?.data}/>;
 };
 
 export default EditMovies;

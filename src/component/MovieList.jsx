@@ -1,16 +1,15 @@
 import React from "react";
-import { AppBar, Toolbar, Typography, Grid, Card, CardMedia, CardContent, Button, Pagination, Box } from "@mui/material";
+import { AppBar, Toolbar, Typography, Grid, Card, CardMedia, CardContent, Box } from "@mui/material";
 import bgImage from "../../public/assets/Vectors.png";
-import CardImage from "../../public/assets/card-image.png";
 import Plus from '../../public/assets/round-plus.svg';
-import Logout from '../../public/assets/logout.svg';
 import Image from "next/image";
 import Link from "next/link";
+import LogoutButton from "./LogoutButton";
 
 
-export default function MovieList() {
-  const movies = Array(12).fill({ title: "Movie 1", year: 2021, image: CardImage.src }); 
 
+export default function MovieList({movies}) {
+ 
   return (
     <Box sx={{ backgroundColor: "#0a3644", position: 'relative', minHeight: "100vh", padding:{xs: '20px',md:'80px',lg:"120px"}, paddingBottom: {xs: '100px !important',md:'200px !important'}, color: "#FFFFFF" }}>
       {/* Header */}
@@ -22,12 +21,12 @@ export default function MovieList() {
             <Image src={Plus.src} height={20} width={20} alt="plus icon" />
             </Link>
           </Typography>
-          <Button sx={{ color: "#ffffff", textTransform: "none", fontWeight: "bold", gap: '10px' }}>Logout  <Image  alt="logout icon" src={Logout.src} height={20} width={20} /></Button>
+         <LogoutButton />
         </Toolbar>
       </AppBar>
 
       <Grid container spacing={4} sx={{ padding: "20px", justifyContent: "center" }}>
-        {movies.map((movie, index) => (
+        {movies?.map((movie, index) => (
           <Grid item key={index} xs={12} sm={6} md={4} lg={3}>
             <Card sx={{ backgroundColor: "#092C39", borderRadius: "12px" }}>
                 <Box sx={{padding: '8px'}}>
@@ -35,7 +34,7 @@ export default function MovieList() {
               <CardMedia
                 component="img"
                 height="180"
-                image={movie.image}
+                image={movie.poster}
                 alt={movie.title}
                 sx={{ borderRadius: "12px" }}
                 />
@@ -45,7 +44,7 @@ export default function MovieList() {
                   {movie.title}
                 </Typography>
                 <Typography variant="body2" color="white.main" lineHeight="24px">
-                  {movie.year}
+                  {movie.publishingYear}
                 </Typography>
               </CardContent>
             </Card>
@@ -53,7 +52,7 @@ export default function MovieList() {
         ))}
       </Grid>
 
-      <div style={{ display: "flex", justifyContent: "center", padding: "20px 0" }}>
+      {/* <div style={{ display: "flex", justifyContent: "center", padding: "20px 0" }}>
         <Pagination
           count={2}
           shape="rounded"
@@ -64,7 +63,7 @@ export default function MovieList() {
             },
           }}
         />
-      </div>
+      </div> */}
       <Box
         component="img"
         src={bgImage.src} 

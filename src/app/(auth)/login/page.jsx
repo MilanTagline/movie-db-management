@@ -14,9 +14,11 @@ import * as Yup from "yup";
 import bgImage from "../../../../public/assets/Vectors.png";
 import { useDispatch } from "react-redux";
 import { login } from "@/redux/actions/authAction";
+import { useRouter } from "next/navigation";
 
 const LoginPage = () => {
   const dispatch = useDispatch()
+  const router = useRouter()
   const validationSchema = Yup.object().shape({
     email: Yup.string()
       .email("Invalid email address")
@@ -35,8 +37,7 @@ const LoginPage = () => {
     resolver: yupResolver(validationSchema),
   });
   const onSubmit = (data) => {
-    console.log("Form Data: ", data);
-    dispatch(login(data));
+    dispatch(login(data, router));
   };
 
   return (
@@ -73,18 +74,21 @@ const LoginPage = () => {
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
           <TextField
             {...register("email")}
-            label="Email"
-            variant="outlined"
+            placeholder="Email"
             fullWidth
             autoComplete="off"
             sx={{
+              '& .MuiInputBase-root':{
+                overflow: 'hidden',
+                borderRadius: "10px",
+              },
               input: {
                 color: "white.main",
                 bgcolor: "#224957",
-                borderRadius: "10px",
                 "&:-webkit-autofill": {
                   bgcolor: "#224957",
                   WebkitBoxShadow: "0 0 0px 1000px #224957 inset ",
+                  WebkitTextFillColor: "white !important",
                   color: '#fff !important'
                 },
               },
@@ -105,17 +109,26 @@ const LoginPage = () => {
           />
           <TextField
             {...register("password")}
-            label="Password"
+            placeholder="Password"
             type="password"
             variant="outlined"
             fullWidth
             margin="normal"
             sx={{
+              '& .MuiInputBase-root':{
+                overflow: 'hidden',
+                borderRadius: "10px",
+              },
               input: {
                 color: "white.main",
                 bgcolor: "#224957",
-                borderRadius: "10px",
                 "&:-webkit-autofill": {
+                  bgcolor: "#224957",
+                  WebkitBoxShadow: "0 0 0px 1000px #224957 inset ",
+                  WebkitTextFillColor: "white !important",
+                  color: 'white.main !important'
+                },
+                "&:-webkit-autofill-selected": {
                   bgcolor: "#224957",
                   WebkitBoxShadow: "0 0 0px 1000px #224957 inset ",
                   color: 'white.main !important'

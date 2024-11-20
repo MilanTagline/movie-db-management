@@ -1,4 +1,5 @@
 import axios from 'axios'
+import Cookies from 'js-cookie'
 
 const api = (
   method,
@@ -9,7 +10,7 @@ const api = (
 ) =>
   new Promise((myResolve) => {
     let headers = {}
-    const token = ""
+    const token = Cookies.get('token')
     if (isToken) {
       headers = {
         Authorization: `Bearer ${token}`,

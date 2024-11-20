@@ -3,5 +3,5 @@ import Addorupdatemovie from "@/component/Addorupdatemovie";
 
 
 export default function AddMovie() {
-  return <Addorupdatemovie />
+  return <Addorupdatemovie movie={""}/>
 }
