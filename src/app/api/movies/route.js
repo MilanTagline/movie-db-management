@@ -74,6 +74,32 @@ export const config = {
 export async function GET(request) {
   try {
     await dbConnect();
+    // Get the token from the Authorization header
+    const token = request.headers.get("Authorization")?.split(" ")[1]; // 'Bearer <token>'
+    // console.log("\n\n >>>>>> token >>>>>>\n\n", token);
+
+    if (!token) {
+      return response(false, 401, "Authorization token is required");
+    }
+
+    // Verify the token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET); // Verify the token with the secret
+    // console.log("\n\n >>>>>> decoded >>>>>>\n\n", decoded);
+
+    if (!decoded) {
+      return response(false, 401, "Invalid token");
+    }
+    // Extract user ID from decoded token
+    const userId = decoded.id;
+
+    // Verify that the user exists in the database
+    const user = await users.findById(userId);
+    // console.log("\n\n >>>>>> user >>>>>>\n", user);
+
+    if (!user) {
+      return response(false, 401, "Unauthorized user");
+    }
+
     const { searchParams } = new URL(request?.url);
     const id = searchParams?.get("id");
 
@@ -82,6 +108,9 @@ export async function GET(request) {
       movies = await Movies.findById(id);
     } else {
       movies = await Movies.find();
+    }
+    if (!movies) {
+      return response(false, 401, "No Movie Found");
     }
 
     return response(true, 200, "Success", movies);
@@ -294,11 +323,11 @@ export async function PUT(request) {
     }
     // console.log("\n\n >>>> old updateData :>> \n", updatedMovie);
 
-    // const publicId = updatedMovie?.poster
-    //   .split("/")
-    //   .slice(-2)
-    //   .join("/")
-    //   .split(".")[0];
+    const publicId = updatedMovie?.poster
+      .split("/")
+      .slice(-2)
+      .join("/")
+      .split(".")[0];
 
     console.log("publicId :>> ", publicId);
 
@@ -317,6 +346,31 @@ export async function PUT(request) {
 export async function DELETE(request) {
   try {
     await dbConnect();
+    const token = request.headers.get("Authorization")?.split(" ")[1]; // 'Bearer <token>'
+    // console.log("\n\n >>>>>> token >>>>>>\n\n", token);
+
+    if (!token) {
+      return response(false, 401, "Authorization token is required");
+    }
+
+    // Verify the token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET); // Verify the token with the secret
+    // console.log("\n\n >>>>>> decoded >>>>>>\n\n", decoded);
+
+    if (!decoded) {
+      return response(false, 401, "Invalid token");
+    }
+    // Extract user ID from decoded token
+    const userId = decoded.id;
+
+    // Verify that the user exists in the database
+    const user = await users.findById(userId);
+    // console.log("\n\n >>>>>> user >>>>>>\n", user);
+
+    if (!user) {
+      return response(false, 401, "Unauthorized user");
+    }
+
     const { searchParams } = new URL(request?.url);
     const id = searchParams?.get("id");
     console.log("\n >>>> object >>>> ", id);
@@ -324,10 +378,24 @@ export async function DELETE(request) {
       return response(true, 400, "Movie ID is required");
     }
     const deletedMovie = await Movies.findByIdAndDelete(id);
-
+    console.log("deletedMovie :>> ", deletedMovie);
     if (!deletedMovie) {
       return response(true, 404, "Movie not found");
     }
+
+    const publicId = deletedMovie?.poster
+      .split("/")
+      .slice(-2)
+      .join("/")
+      .split(".")[0];
+
+    console.log("publicId :>> ", publicId);
+
+    // // Delete the old image from Cloudinary
+    await cloudinary.uploader.destroy(publicId, function (result) {
+      console.log(" Movie image is deleted from Cloudinary:", result);
+    });
+
     return response(true, 201, "Movie deleted successfully");
   } catch (error) {
     return response(true, 500, "Error deleting movie", error);
