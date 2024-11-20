@@ -3,22 +3,17 @@ import Button from "@/shared/Button";
 import Typography from "@/shared/Typography";
 import theme from "@/themes/theme";
 import { yupResolver } from "@hookform/resolvers/yup";
-import {
-  Box,
-  Checkbox,
-  FormControlLabel,
-  TextField
-} from "@mui/material";
+import { Box, Checkbox, FormControlLabel, TextField } from "@mui/material";
 import { useForm } from "react-hook-form";
 import * as Yup from "yup";
 import bgImage from "../../../../public/assets/Vectors.png";
 import { useDispatch } from "react-redux";
 import { login } from "@/redux/actions/authAction";
 import { useRouter } from "next/navigation";
+import Cookies from "js-cookie";
+import { useEffect } from "react";
 
 const LoginPage = () => {
-  const dispatch = useDispatch()
-  const router = useRouter()
   const validationSchema = Yup.object().shape({
     email: Yup.string()
       .email("Invalid email address")
@@ -28,15 +23,39 @@ const LoginPage = () => {
       .required("Password is required"),
     rememberMe: Yup.boolean(),
   });
-
+  const dispatch = useDispatch();
+  const router = useRouter();
   const {
     register,
     handleSubmit,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm({
     resolver: yupResolver(validationSchema),
+    values: {
+      email: "",
+      password: "",
+      rememberMe: false,
+    },
   });
+  const rememberMe = watch("rememberMe");
+
+  useEffect(() => {
+    const email = Cookies.get("email");
+    const password = Cookies.get("password");
+    if (email && password) {
+      setValue("email", email);
+      setValue("password", password);
+      setValue("rememberMe", true);
+    }
+  }, []);
+
   const onSubmit = (data) => {
+    if (data?.rememberMe) {
+      Cookies.set("email", data.email);
+      Cookies.set("password", data.password);
+    }
     dispatch(login(data, router));
   };
 
@@ -78,8 +97,8 @@ const LoginPage = () => {
             fullWidth
             autoComplete="off"
             sx={{
-              '& .MuiInputBase-root':{
-                overflow: 'hidden',
+              "& .MuiInputBase-root": {
+                overflow: "hidden",
                 borderRadius: "10px",
               },
               input: {
@@ -89,7 +108,7 @@ const LoginPage = () => {
                   bgcolor: "#224957",
                   WebkitBoxShadow: "0 0 0px 1000px #224957 inset ",
                   WebkitTextFillColor: "white !important",
-                  color: '#fff !important'
+                  color: "#fff !important",
                 },
               },
               label: { color: "white.main" },
@@ -115,8 +134,8 @@ const LoginPage = () => {
             fullWidth
             margin="normal"
             sx={{
-              '& .MuiInputBase-root':{
-                overflow: 'hidden',
+              "& .MuiInputBase-root": {
+                overflow: "hidden",
                 borderRadius: "10px",
               },
               input: {
@@ -126,12 +145,12 @@ const LoginPage = () => {
                   bgcolor: "#224957",
                   WebkitBoxShadow: "0 0 0px 1000px #224957 inset ",
                   WebkitTextFillColor: "white !important",
-                  color: 'white.main !important'
+                  color: "white.main !important",
                 },
                 "&:-webkit-autofill-selected": {
                   bgcolor: "#224957",
                   WebkitBoxShadow: "0 0 0px 1000px #224957 inset ",
-                  color: 'white.main !important'
+                  color: "white.main !important",
                 },
               },
               label: { color: "white.main" },
@@ -143,7 +162,7 @@ const LoginPage = () => {
               "& .MuiFormHelperText-root": {
                 color: errors.password
                   ? `${theme.palette.primary.error}`
-                  : "white.main", 
+                  : "white.main",
               },
             }}
             error={!!errors.password}
@@ -153,6 +172,7 @@ const LoginPage = () => {
             control={
               <Checkbox
                 {...register("rememberMe")}
+                checked={rememberMe}
                 sx={{
                   color: "#224957",
                   "&.Mui-checked": { color: "#6ee7b7" },

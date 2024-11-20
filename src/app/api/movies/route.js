@@ -338,6 +338,7 @@ export async function PUT(request) {
 
     return response(true, 201, "Success", updatedMovie);
   } catch (error) {
+    console.log("error :>> ", error);
     return response(true, 500, "Error modifying movie", error);
   }
 }

@@ -1,17 +1,18 @@
 import React from "react";
-import { AppBar, Toolbar, Typography, Grid, Card, CardMedia, CardContent, Box } from "@mui/material";
+import { AppBar, Toolbar, Typography, Grid, Card, CardMedia, CardContent, Box, } from "@mui/material";
 import bgImage from "../../public/assets/Vectors.png";
 import Plus from '../../public/assets/round-plus.svg';
 import Image from "next/image";
 import Link from "next/link";
 import LogoutButton from "./LogoutButton";
+import Actions from "./Actions";
 
 
 
 export default function MovieList({movies}) {
  
   return (
-    <Box sx={{ backgroundColor: "#0a3644", position: 'relative', minHeight: "100vh", padding:{xs: '20px',md:'80px',lg:"120px"}, paddingBottom: {xs: '100px !important',md:'200px !important'}, color: "#FFFFFF" }}>
+    <Box sx={{ backgroundColor: "#0a3644", position: 'relative', minHeight: "100vh", padding:{sm: '20px',md:'50px',lg:"120px"}, paddingBottom: {xs: '100px !important',md:'200px !important'}, color: "#FFFFFF" }}>
       {/* Header */}
       <AppBar position="static" sx={{ backgroundColor: "#0a3644", boxShadow: "none", padding: "0" }}>
         <Toolbar sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", minHeight: 'unset !important' }}>
@@ -25,10 +26,10 @@ export default function MovieList({movies}) {
         </Toolbar>
       </AppBar>
 
-      <Grid container spacing={4} sx={{ padding: "20px", justifyContent: "center" }}>
+      <Grid container spacing={4} sx={{ padding: "20px" }}>
         {movies?.map((movie, index) => (
-          <Grid item key={index} xs={12} sm={6} md={4} lg={3}>
-            <Card sx={{ backgroundColor: "#092C39", borderRadius: "12px" }}>
+          <Grid item key={index} xs={12} sm={6} md={4} xl={3} >
+            <Card sx={{ backgroundColor: "#092C39", borderRadius: "12px", height:"100%" }}>
                 <Box sx={{padding: '8px'}}>
 
               <CardMedia
@@ -36,16 +37,20 @@ export default function MovieList({movies}) {
                 height="180"
                 image={movie.poster}
                 alt={movie.title}
-                sx={{ borderRadius: "12px" }}
+                sx={{ borderRadius: "12px", height:{lg:"400px",xs:'250px'} }}
                 />
                 </Box>
-              <CardContent>
-                <Typography variant="h6" sx={{ fontSize: "20px", fontWeight: "500", color: "white", lineHeight: "32px", color: 'white.main' }}>
-                  {movie.title}
-                </Typography>
-                <Typography variant="body2" color="white.main" lineHeight="24px">
-                  {movie.publishingYear}
-                </Typography>
+              <CardContent sx={{display:'flex', alignItems:"start", justifyContent:"space-between"}}>
+                <Box>
+                  <Typography variant="h6" sx={{ fontSize: {lg:"20px",md:"18px"}, fontWeight: "500", color: "white", lineHeight: "32px", color: 'white.main' }}>
+                    {movie.title}
+                  </Typography>
+                  <Typography variant="body2" color="white.main" lineHeight="24px">
+                    {movie.publishingYear}
+                  </Typography>
+                </Box>
+               <Actions id={movie?._id} />
+
               </CardContent>
             </Card>
           </Grid>

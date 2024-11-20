@@ -75,13 +75,16 @@ export default function Addorupdatemovie({ movie }) {
         ? await urlToFile(movie?.poster, "movie poster")
         : watch("file")
     );
+    formData.append("id", movie?._id);
 
     try {
       const res = Object.keys(movie)?.length
         ? await api("put", "/api/movies", formData, true, true)
         : await api("post", "/api/movies", formData, true, true);
       if (res?.data) {
-        toast.success("Movie created successfully");
+        Object.keys(movie)?.length
+          ? toast.success("Movie Updated successfully")
+          : toast.success("Movie created successfully");
         router.push("/movie");
         reset();
       }
@@ -106,10 +109,10 @@ export default function Addorupdatemovie({ movie }) {
         variant="h4"
         sx={{
           color: "#fff",
-          marginBottom: "120px",
+          marginBottom: { md: "120px", xs: "40px" },
           fontWeight: "bold",
-          fontSize: "48px",
-          lineHeight: "56px",
+          fontSize: { md: "48px", xs: "24px" },
+          lineHeight: { md: "56px", xs: "28px" },
         }}
       >
         {Object.keys(movie)?.length ? "Edit" : "Create a new movie"}
