@@ -74,10 +74,19 @@ export const config = {
 export async function GET(request) {
   try {
     await dbConnect();
-    console.log("\n >>>> request >>>> ", request);
-    const movies = await Movies.find({});
+    const { searchParams } = new URL(request?.url);
+    const id = searchParams?.get("id");
+
+    let movies;
+    if (id) {
+      movies = await Movies.findById(id);
+    } else {
+      movies = await Movies.find();
+    }
+
     return response(true, 200, "Success", movies);
   } catch (error) {
+    console.log("\n >>>> error >>>> ", error);
     return response(true, 500, "Error fetching movies", error);
   }
 }
@@ -305,11 +314,12 @@ export async function PUT(request) {
 }
 
 // Handle DELETE request
-async function DELETE(request) {
+export async function DELETE(request) {
   try {
     await dbConnect();
-    const { id } = request.query;
-
+    const { searchParams } = new URL(request?.url);
+    const id = searchParams?.get("id");
+    console.log("\n >>>> object >>>> ", id);
     if (!id) {
       return response(true, 400, "Movie ID is required");
     }
