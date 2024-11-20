@@ -74,6 +74,7 @@ export const config = {
 export async function GET(request) {
   try {
     await dbConnect();
+    console.log("\n >>>> request >>>> ", request);
     const movies = await Movies.find({});
     return response(true, 200, "Success", movies);
   } catch (error) {
@@ -206,10 +207,10 @@ export async function PUT(request) {
       });
     });
     console.log("\n >>>> fields :>>>>>> ", fields);
-    console.log("\n >>>> fields :>>>>>> ", files);
+    // console.log("\n >>>> fields :>>>>>> ", files);
     // Get the token from the Authorization header
     const token = request.headers.get("Authorization")?.split(" ")[1]; // 'Bearer <token>'
-    console.log("\n\n >>>>>> token >>>>>>\n\n", token);
+    // console.log("\n\n >>>>>> token >>>>>>\n\n", token);
 
     if (!token) {
       return response(false, 401, "Authorization token is required");
@@ -217,7 +218,7 @@ export async function PUT(request) {
 
     // Verify the token
     const decoded = jwt.verify(token, process.env.JWT_SECRET); // Verify the token with the secret
-    console.log("\n\n >>>>>> decoded >>>>>>\n\n", decoded);
+    // console.log("\n\n >>>>>> decoded >>>>>>\n\n", decoded);
 
     if (!decoded) {
       return response(false, 401, "Invalid token");
@@ -227,26 +228,27 @@ export async function PUT(request) {
 
     // Verify that the user exists in the database
     const user = await users.findById(userId);
-    console.log("\n\n >>>>>> user >>>>>>\n", user);
+    // console.log("\n\n >>>>>> user >>>>>>\n", user);
 
     if (!user) {
       return response(false, 401, "Unauthorized user");
     }
-    console.log("\n\n >>>>>> After user >>>>>>\n");
+    // console.log("\n\n >>>>>> After user >>>>>>\n");
 
     // const { [title], publishingYear, poster } = await request.json();
-    const { title, publishingYear } = fields;
+    const { id, title, publishingYear } = fields;
     // const poster = files.poster ? files.poster[0] : null;
     const [poster] = files.poster;
 
-    // console.log(
-    //   "\n\n >>>>>> poster() >>>>>>\n\n",
-    //   title,
-    //   publishingYear,
-    //   poster
-    // );
-    if (!title[0] || !publishingYear[0]) {
-      return response(false, 400, "All fields are required");
+    console.log(
+      "\n\n >>>>>> request >>>>>>\n",
+      id[0],
+      title[0],
+      publishingYear[0]
+      // poster
+    );
+    if (!id[0]) {
+      return response(false, 400, "Id is required");
     }
 
     let posterUrl = null;
@@ -269,14 +271,33 @@ export async function PUT(request) {
     if (!id) {
       return response(true, 400, "Movie ID is required");
     }
+    let updateData = {};
+    if (title[0]) updateData.title = title[0];
+    if (publishingYear[0]) updateData.publishingYear = publishingYear[0];
+    if (posterUrl) updateData.poster = posterUrl;
+    // console.log("\n\n >>>> updateData :>> \n", updateData);
 
-    const updatedMovie = await Movies.findByIdAndUpdate(id, request.body, {
-      new: true,
+    const updatedMovie = await Movies.findByIdAndUpdate(id, updateData, {
+      new: false,
     });
-
     if (!updatedMovie) {
       return response(true, 404, "Movie not found");
     }
+    // console.log("\n\n >>>> old updateData :>> \n", updatedMovie);
+
+    // const publicId = updatedMovie?.poster
+    //   .split("/")
+    //   .slice(-2)
+    //   .join("/")
+    //   .split(".")[0];
+
+    console.log("publicId :>> ", publicId);
+
+    // // Delete the old image from Cloudinary
+    await cloudinary.uploader.destroy(publicId, function (result) {
+      console.log("Old image deleted from Cloudinary:", result);
+    });
+
     return response(true, 201, "Success", updatedMovie);
   } catch (error) {
     return response(true, 500, "Error modifying movie", error);
